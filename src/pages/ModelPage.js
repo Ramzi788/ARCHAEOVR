@@ -3,7 +3,7 @@ import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber/native";
 import Model from "../components/Model";
 import useControls from "r3f-native-orbitcontrols";
-export default function ScanQRPage({}) {
+export default function ModelPage({}) {
   const [OrbitControls, events] = useControls();
   return (
     <SafeAreaView style={{ flex: 1 }}>
