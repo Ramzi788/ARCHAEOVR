@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GLView } from "expo-gl";
 import { Renderer, loadAsync, THREE } from "expo-three";
 import {
@@ -10,140 +10,278 @@ import {
   Dimensions,
   SafeAreaView,
   TouchableOpacity,
+  Linking,
+  Modal,
 } from "react-native";
+
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import RoundedBox from "../components/RoundedBox";
-import LargeRoundedBox from "../components/LargeRoundedBox";
+
 import MapBox from "../components/MapBox";
 
-export default function Home({ navigation }) {
-  const favoritePlaces = [
-    <RoundedBox
-      key={"p1"}
-      source={require("../assets/hamadeh-palace.jpeg")}
-      title={"Al Hamadeh Palace"}
-    />,
-    <RoundedBox
-      key={"p2"}
-      source={require("../assets/Moussa-Castle.png")}
-      title={"Moussa Castle"}
-    />,
-    <RoundedBox
-      key={"p3"}
-      source={require("../assets/Moussa-Castle.png")}
-      title={"Moussa Castle"}
-    />,
+import Swiper from "react-native-swiper";
+import ImageViewer from "react-native-image-zoom-viewer";
+import { useNavigation } from "@react-navigation/native";
+
+const openGoogleMaps = (lat, lng) => {
+  Linking.openURL("https://maps.app.goo.gl/8Q9UYGoMhPz8XzBx8").catch((err) =>
+    console.error("An error occurred", err)
+  );
+};
+export default function Home() {
+  const navigation = useNavigation();
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const images = [
+    {
+      url: Image.resolveAssetSource(require("../assets/hamadeh-palace.jpeg"))
+        .uri,
+    },
+    {
+      url: Image.resolveAssetSource(require("../assets/ahpic.config.jpeg")).uri,
+    },
+    { url: Image.resolveAssetSource(require("../assets/ahinterior.png")).uri },
   ];
+
+  const openModal = (index) => {
+    setCurrentImageIndex(index);
+    setModalVisible(true);
+  };
   return (
-    <ScrollView style={styles.container}>
-      <GLView
-        style={{ flex: 1 }}
-        onContextCreate={async (gl) => {
-          // Initialize the THREE.js renderer
-          const renderer = new Renderer({ gl });
-          renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
-
-          // Set the renderer reference for use in the useEffect hook
-          rendererRef.current = renderer;
-        }}
-      />
-
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View>
-            <Text style={styles.headerText}>Welcome,</Text>
-            <Text style={styles.headerText}>Ramzi Zeineddine!</Text>
-          </View>
-          <View>
-            <MaterialCommunityIcons
-              name="hand-wave"
-              size={iconSize}
-              color="#FFBF00"
-              style={styles.iconStyle}
-            />
-          </View>
-        </View>
-      </View>
-      <View style={styles.center}>
-        <View style={styles.firstRow}>
-          <Text style={{ marginBottom: 15, fontWeight: "bold" }}>
-            Your Favorite Places in Chouf
-          </Text>
-          <ScrollView
-            horizontal={true}
-            style={styles.boxScroll}
-            showsHorizontalScrollIndicator={false}
+    <View style={styles.container}>
+      <Swiper
+        style={styles.wrapper}
+        showsPagination={true}
+        dotColor="#FFDAA2"
+        activeDotColor="#CA984D"
+        activeDotStyle={{ width: 15 }}
+      >
+        {images.map((image, index) => (
+          <TouchableOpacity
+            activeOpacity={1}
+            key={index}
+            onPress={() => openModal(index)}
+            style={{ flex: 1 }}
           >
-            {favoritePlaces.map((roundedBox, index) => (
-              <View key={index} style={styles.roundedBoxContainer}>
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate("Details", {
-                      backgroundImage: require("../assets/hamadeh-palace.jpeg"),
-                    })
-                  }
-                >
-                  {roundedBox}
-                </TouchableOpacity>
-              </View>
-            ))}
-          </ScrollView>
+            <Image source={{ uri: image.url }} style={styles.image} />
+          </TouchableOpacity>
+        ))}
+      </Swiper>
+
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <ImageViewer
+          imageUrls={images}
+          index={currentImageIndex}
+          onSwipeDown={() => setModalVisible(false)}
+          enableSwipeDown={true}
+          enableImageZoom={true}
+          saveToLocalByLongPress={false}
+        />
+      </Modal>
+      <View style={styles.content}>
+        <View style={styles.row}>
+          <View style={styles.titles}>
+            <Text style={styles.title1}>Al Hamadeh Palace</Text>
+            <Text style={styles.title2}>Baakline, Chouf Lebanon</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("Select")}
+          >
+            <Text style={styles.buttonText}>Start Tour</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.secondRow}>
-          <Text style={{ marginBottom: 15, fontWeight: "bold" }}>
-            Discover Other Sites in the Chouf Region
+        <View style={{ width: "90%", marginRight: 20, marginLeft: 20 }}>
+          <TouchableOpacity
+            style={styles.modelButton}
+            onPress={() => navigation.navigate("Model")}
+          >
+            <Text style={styles.buttonText}>3d Model</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={{ borderWidth: 0.5, borderColor: "#DADADA", marginTop: 30 }}
+        ></View>
+
+        <ScrollView
+          style={styles.scroller}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.description}>
+            The first stone of the Hamada Palace was laid in the year 1604, and
+            the palace is located in a property consisting of several houses,
+            all of which belong to the same family, the Druze Hamada family.
           </Text>
-          <MapBox />
-        </View>
+          <Text style={styles.description}>
+            Inside the palace, visitors will find a room bearing pictures of
+            members of the Hamada family who held the position of spiritual
+            leader of the Druze community, rooms containing antiquities, living
+            rooms and much more. The first stone of the Hamada Palace was laid
+            in the year 1604, and the palace is located in a property consisting
+            of several houses, all of which belong to the same family, the Druze
+            Hamada family. Inside the palace, visitors will find a room bearing
+            pictures of members of the Hamada family who held the position of
+            spiritual leader of the Druze community, rooms containing
+            antiquities, living rooms and much more.The first stone of the
+            Hamada Palace was laid in the year 1604, and the palace is located
+            in a property consisting of several houses, all of which belong to
+            the same family, the Druze Hamada family. Inside the palace,
+            visitors will find a room bearing pictures of members of the Hamada
+            family who held the position of spiritual leader of the Druze
+            community, rooms containing antiquities, living rooms and much more.
+          </Text>
+          <Text style={styles.description}>
+            The first stone of the Hamada Palace was laid in the year 1604, and
+            the palace is located in a property consisting of several houses,
+            all of which belong to the same family, the Druze Hamada family.
+            Inside the palace, visitors will find a room bearing pictures of
+            members of the Hamada family who held the position of spiritual
+            leader of the Druze community, rooms containing antiquities, living
+            rooms and much more. The first stone of the Hamada Palace was laid
+            in the year 1604, and the palace is located in a property consisting
+            of several houses, all of which belong to the same family, the Druze
+            Hamada family. Inside the palace, visitors will find a room bearing
+            pictures of members of the Hamada family who held the position of
+            spiritual leader of the Druze community, rooms containing
+            antiquities, living rooms and much more.The first stone of the
+            Hamada Palace was laid in the year 1604, and the palace is located
+            in a property consisting of several houses, all of which belong to
+            the same family, the Druze Hamada family. Inside the palace,
+            visitors will find a room bearing pictures of members of the Hamada
+            family who held the position of spiritual leader of the Druze
+            community, rooms containing antiquities, living rooms and much more.
+          </Text>
+          <Text style={styles.location}>Location</Text>
+          <View style={styles.locationSection}>
+            <View style={styles.textContainer}>
+              <Text style={styles.locationTitle}>
+                MHH5+HFC, Baakleen, Lebanon
+              </Text>
+              <TouchableOpacity
+                style={styles.openButton}
+                onPress={() => openGoogleMaps(33.8938, 35.5018)}
+              >
+                <Text style={styles.mapButton}>Open in Maps</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.mapContainer}>
+              <MapBox />
+            </View>
+          </View>
+        </ScrollView>
       </View>
-    </ScrollView>
+    </View>
   );
 }
-const baseUnit = 16;
-const iconSize = 25;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: "100%",
-    flexDirection: "column",
-    alignSelf: "flex-start",
     backgroundColor: "white",
   },
-  header: {
-    backgroundColor: "#00A59B",
-    height: 130,
+  content: {
+    flex: 2,
   },
-  headerContent: {
-    flex: 1,
+  openButton: {
+    backgroundColor: "#CA984D",
+    borderRadius: 5,
+    height: 25,
+    paddingLeft: 10,
+    justifyContent: "center",
+  },
+  locationTitle: {
+    color: "#9F9F9F",
+    fontSize: 12,
+    marginBottom: 15,
+  },
+  mapButton: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 10,
+  },
+  modelButton: {
+    borderRadius: 5,
+    backgroundColor: "black",
+    padding: 10,
+    marginTop: 15,
     width: "100%",
+    alignItems: "center",
+  },
+  locationSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 20,
+  },
+
+  textContainer: {
+    flex: 2,
+    marginRight: 10, // Add some margin to the right of the text
+  },
+
+  mapContainer: {
+    flex: 2.5,
+    height: 197,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+
+  image: {
+    height: 290,
+    width: "100%",
+  },
+  scroller: {
+    margin: 20,
+  },
+  description: {
+    textAlign: "justify",
+    marginBottom: 20,
+  },
+  location: {
+    fontWeight: "bold",
+    fontSize: 15,
+    marginBottom: 20,
+  },
+  row: {
+    display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingLeft: 25,
-    paddingRight: 25,
+    marginHorizontal: 20,
+    marginTop: 50,
   },
-  headerText: {
+  title1: {
     fontWeight: "bold",
+    fontSize: 20,
+  },
+  title2: {
+    fontSize: 12,
+    color: "#9C9C9C",
+  },
+  buttonContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  titles: {
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+  button: {
+    borderRadius: 5,
+    backgroundColor: "#CA984D",
+    padding: 10,
+    width: "40%",
+    alignItems: "center",
+  },
+  buttonText: {
     color: "white",
-    fontSize: 1.2 * baseUnit,
-    lineHeight: 30,
+    fontWeight: "bold",
   },
-  center: {
-    flex: 1,
-    width: "100%",
-    flexDirection: "column",
-    padding: 1.5 * baseUnit,
-  },
-  firstRow: {
-    flexDirection: "column",
-    paddingTop: 1.5 * baseUnit,
-  },
-  roundedBoxContainer: {
-    paddingRight: 1.2 * baseUnit,
-  },
-  secondRow: {
-    marginTop: 2 * baseUnit,
-  },
-  bottom: {},
 });
