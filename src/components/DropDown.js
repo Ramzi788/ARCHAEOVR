@@ -9,7 +9,7 @@ const data = [
   { label: "Moussa Castle", value: "2" },
 ];
 
-const DropdownComponent = () => {
+const DropdownComponent = ({ onSelect }) => {
   const [value, setValue] = useState(null);
   const navigation = useNavigation();
   return (
@@ -28,7 +28,12 @@ const DropdownComponent = () => {
       value={value}
       onChange={(item) => {
         setValue(item.value);
-        navigation.navigate("Home");
+        if (onSelect) {
+          onSelect(item);
+        }
+        navigation.navigate("Home", {
+          siteDetails: item,
+        });
       }}
     />
   );
