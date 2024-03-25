@@ -25,49 +25,64 @@ const openGoogleMaps = () => {
     console.error("An error occurred", err)
   );
 };
-export default function Home() {
-  // const [siteDetails, setSiteDetails] = useState(null);
-  // const [isModalVisible, setModalVisible] = useState(false);
-  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  // const route = useRoute();
-  // const { siteDetails: selectedSiteDetails } = route.params ?? {};
-  // useEffect(() => {
-  //   const fetchSiteDetails = async () => {
-  //     if (!selectedSiteDetails?.label) {
-  //       console.log("Label is undefined.");
-  //       return;
-  //     }
-  //     console.log(`Fetching details for label: ${selectedSiteDetails.label}`);
-  //     try {
-  //       const response = await fetch(
-  //         `http://10.0.0.2:5002/api/siteDetails/${encodeURIComponent(
-  //           selectedSiteDetails.label
-  //         )}`
-  //       );
-  //       console.log("Response status:", response.status);
-  //       if (!response.ok) {
-  //         throw new Error(`Failed to fetch, status code: ${response.status}`);
-  //       }
-  //       const data = await response.json();
-  //       console.log(data);
-  //       setSiteDetails(data);
-  //     } catch (error) {
-  //       console.error("Error fetching site details:", error);
-  //     }
-  //   };
+export default function Home({ navigation }) {
+  const images = [
+    {
+      url: Image.resolveAssetSource(require("../assets/hamadeh-palace.jpeg"))
+        .uri,
+    },
+    {
+      url: Image.resolveAssetSource(require("../assets/ahpic.config.jpeg")).uri,
+    },
+    { url: Image.resolveAssetSource(require("../assets/ahinterior.png")).uri },
+    { url: Image.resolveAssetSource(require("../assets/hamadeh2.jpeg")).uri },
+  ];
+  const openModal = (index) => {
+    setCurrentImageIndex(index);
+    setModalVisible(true);
+  };
+  const [siteDetails, setSiteDetails] = useState(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const route = useRoute();
+  const { siteDetails: selectedSiteDetails } = route.params ?? {};
+  useEffect(() => {
+    const fetchSiteDetails = async () => {
+      if (!selectedSiteDetails?.label) {
+        console.log("Label is undefined.");
+        return;
+      }
+      console.log(`Fetching details for label: ${selectedSiteDetails.label}`);
+      try {
+        const response = await fetch(
+          `http://192.168.1.126:5002/api/siteDetails/${encodeURIComponent(
+            selectedSiteDetails.label
+          )}`
+        );
+        console.log("Response status:", response.status);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch, status code: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(data);
+        setSiteDetails(data);
+      } catch (error) {
+        console.error("Error fetching site details:", error);
+      }
+    };
 
-  //   if (selectedSiteDetails?.label) {
-  //     fetchSiteDetails();
-  //   }
-  // }, [selectedSiteDetails?.label]);
+    if (selectedSiteDetails?.label) {
+      fetchSiteDetails();
+    }
+  }, [selectedSiteDetails?.label]);
 
-  // if (!siteDetails) {
-  //   return (
-  //     <View style={styles.container}>
-  //       <Text>Loading...</Text>
-  //     </View>
-  //   );
-  // }
+  if (!siteDetails) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   const openGoogleMaps = () => {
     Linking.openURL("https://maps.app.goo.gl/8Q9UYGoMhPz8XzBx8").catch((err) =>
@@ -141,13 +156,9 @@ export default function Home() {
           style={styles.scroller}
           showsVerticalScrollIndicator={false}
         >
-          <Text>Site Name: {siteDetails?.name}</Text>
+          {/* <Text>Site Name: {siteDetails?.name}</Text> */}
+          <Text style={styles.description}>{siteDetails?.description}</Text>
           {/* <Text style={styles.description}>
-            The first stone of the Hamada Palace was laid in the year 1604, and
-            the palace is located in a property consisting of several houses,
-            all of which belong to the same family, the Druze Hamada family.
-          </Text>
-          <Text style={styles.description}>
             Inside the palace, visitors will find a room bearing pictures of
             members of the Hamada family who held the position of spiritual
             leader of the Druze community, rooms containing antiquities, living
